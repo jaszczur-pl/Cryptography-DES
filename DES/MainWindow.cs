@@ -28,7 +28,7 @@ namespace DES{
 			DesAlgorithm des = new DesAlgorithm();
             System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
             byte[] klucz = des.GetStringHexKey(txtKlucz.Text);
-            byte[] wynik = des.szyfruj(StrToByteArray(txtZrodlo.Text), klucz);
+            byte[] wynik = des.Encrypt(StrToByteArray(txtZrodlo.Text), klucz);
             txtWynik.Text = des.ToHexString(wynik);
             MessageBox.Show("Szyfrowanie zakończone sukcesem!");
 
@@ -41,7 +41,7 @@ namespace DES{
             System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
             byte[] zaszyfrowane = des.GetStringHexText(txtZrodlo.Text);
             byte[] klucz = des.GetStringHexKey(txtKlucz.Text);
-            byte[] wynik = des.deszyfruj(zaszyfrowane, klucz);
+            byte[] wynik = des.Decrypt(zaszyfrowane, klucz);
             txtWynik.Text = enc.GetString(wynik);
             MessageBox.Show("Deszyfrowanie zakończone sukcesem!");
 

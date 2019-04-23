@@ -16,17 +16,17 @@ namespace DES{
 		 * dane bierzemy do tablicy opisującej ilosć przesunieć,
 		 * metoda prywatna wykorzystywana tylko wewnetrz klasy do tworzenia kluczy
 		 */
-		private BitArray leftShift(BitArray tablica, int shift) {//niestety klasa wbudowana w C# nie zapewnia tego typu operacji
-			BitArray wynik = new BitArray(tablica.Length, false);
-			for (int i = 0; i < tablica.Length; i++) {
-				if (i < tablica.Length - shift) {
-					wynik[i] = tablica[i + shift];
+		private BitArray moveBitsLeft(BitArray array, int shift) {//niestety klasa wbudowana w C# nie zapewnia tego typu operacji
+			BitArray result = new BitArray(array.Length, false);
+			for (int i = 0; i < array.Length; i++) {
+				if (i < array.Length - shift) {
+					result[i] = array[i + shift];
 				} else {
-					wynik.Set(i, false);
+					result.Set(i, false);
 				}
 			}
 			
-			return wynik;
+			return result;
 		}
 		
 		/* złcza 2 tablice bitów w jedną, konkatenacja tab1+tab2
@@ -49,17 +49,17 @@ namespace DES{
 		 * czyli po ludzku, dokonuje zamiany bitów wedle określonego wzorca(mapy),
 		 * w wyniku tej operacji powstajemy nową tablica bitów, która może mieć inny rozmiar od wejsciowego
 		 * do tego bity w tablicy wyjściowej są uzyskane z tablicy wejściowej, w porzadku narzuconym przez mape
-		 * zakładamy że właściwa mapa jest podłaczana do właściwej tablicy,
+		 * zakładamy że właściwa map jest podłaczana do właściwej tablicy,
 		 * w przypadku niewłaściwej mapy, może zostać zgłoszony wyjątek przekroczenia zakresu
 		 */
-		private BitArray permutuj(BitArray tablica, int[] mapa) {
-			BitArray wynik = new BitArray(mapa.Length, false);
+		private BitArray performPermutation(BitArray array, int[] map) {
+			BitArray result = new BitArray(map.Length, false);
 			
-			for (int i = 0; i < mapa.Length; i++) {
-				wynik[i] = tablica[ mapa[i]-1 ];
+			for (int i = 0; i < map.Length; i++) {
+				result[i] = array[ map[i]-1 ];
 			}
 
-			return wynik;
+			return result;
 		}
 
 //---------------------------------------------------------------------------------------------------------------------------------------
@@ -109,7 +109,7 @@ namespace DES{
 			wynik[2] = tmp[2];
 			wynik[3] = tmp[3];
 
-			return odwroc4(ref wynik);	//odwracamy kolejność zgodnie z przyjętym wewnętrznym porządkiem czytanai bitów od lewej do prawej
+			return Revert4Bits(ref wynik);	//odwracamy kolejność zgodnie z przyjętym wewnętrznym porządkiem czytanai bitów od lewej do prawej
 										//sposób ten ułatwia nam zrozumienie i łatwiejsze operowanie na bitach 
 										//(szczególnie przydatne to było przy debugowaniu)
 		}
@@ -122,7 +122,7 @@ namespace DES{
 		 * 4. permutacja
 		 */
 		private BitArray fun(BitArray l, BitArray klucz) {
-			BitArray tmp = permutuj(l, eTable);//robi też rozszerzenie.(krok 1)
+			BitArray tmp = performPermutation(l, eTable);//robi też rozszerzenie.(krok 1)
 			
 			tmp.Xor(klucz);//(krok 2)
 			//podział na grupy do sboksów
@@ -144,7 +144,7 @@ namespace DES{
 				k += zamiennik.Length;
 			}
 
-			return permutuj(wynik, p);//permutacja całej połówki
+			return performPermutation(wynik, p);//permutacja całej połówki
 		}
 //---------------------------------------------------------------------------------------------------------------------------------------
 		/* kopiuje dane(bajty) z tablicy wejściowej od pozycji start, poprzez określoną ilość
@@ -280,7 +280,7 @@ namespace DES{
 		 * wykorzystywane do uproszczenia rozumowania, zamieniono kolejność oznaczenia bajtów - od lewej do prawej,
 		 * zamiast prawidłowego od prawej do lewej)
 		 */
-		private BitArray odwroc(ref BitArray tab) {
+		private BitArray RevertBits(ref BitArray tab) {
 			for (int i = 0; i < tab.Length; i = i + 8) {
 				bool tmp = false;
 				for (int j = 0; j < 4; j++) {
@@ -295,7 +295,7 @@ namespace DES{
 
 		/* to co wyżej, tylko że wielkość "bajtu" wynosi tutaj 4 bity
 		 */
-		private BitArray odwroc4(ref BitArray tab) {
+		private BitArray Revert4Bits(ref BitArray tab) {
 			for (int i = 0; i < tab.Length; i = i + 4) {
 				bool tmp = false;
 				for (int j = 0; j < 2; j++) {
@@ -367,12 +367,12 @@ namespace DES{
 			//zapamiętujemy bity które mają być przesuniete na koniec 
 			tmp[0] = c[0];//w pierwszym przesunieciu jest tylko o 1 w lewo, będzie to na stałe wpisane, trudno
 
-			c = leftShift(c, leftShifts[0]);//przesuniecie
+			c = moveBitsLeft(c, leftShifts[0]);//przesuniecie
 			
 			c[c.Length-1] = tmp[0];//wpisanie bitów z początka
 
 			tmp[0] = d[0];
-			d = leftShift(d, leftShifts[0]);//przesuniecie
+			d = moveBitsLeft(d, leftShifts[0]);//przesuniecie
 
 			d[d.Length-1] = tmp[0];//wpisanie bitów z początka
 
@@ -393,7 +393,7 @@ namespace DES{
 				for (int k = 0; k < leftShifts[i]; k++) {
 					tmp[k] = c.Get(k);
 				}
-				c = leftShift(c, leftShifts[i]);//przesuniecie
+				c = moveBitsLeft(c, leftShifts[i]);//przesuniecie
 				
 				//wpisanie na koniec zapamietanych bitów
 				for (int k = 0; k < leftShifts[i]; k++) {
@@ -403,7 +403,7 @@ namespace DES{
 				for (int k = 0; k < leftShifts[i]; k++) {
 					tmp[k] = d.Get(k);
 				}
-				d = leftShift(d, leftShifts[i]);//przesuniecie
+				d = moveBitsLeft(d, leftShifts[i]);//przesuniecie
 
 				for (int k = 0; k < leftShifts[i]; k++) {
 					d[d.Length - leftShifts[i] + k] = tmp.Get(k);
@@ -449,11 +449,11 @@ namespace DES{
 		/* metoda odpowiedzialna za wykonanie i przygotowanie danych w odpowieniej kolejności do szyfrowania
 		 * czyli w skrócie, odpowidnia kolejnosć kluczy zostaje ustawiona
 		 */
-        public byte[] szyfruj(byte[] co, byte[] kluczB){
+        public byte[] Encrypt(byte[] co, byte[] kluczB){
 			//krok 1.1
 			BitArray klucz = new BitArray(kluczB);
 
-			BitArray kPlus = permutuj(odwroc(ref klucz), pc1);//permutujemy klucz
+			BitArray kPlus = performPermutation(RevertBits(ref klucz), pc1);//permutujemy klucz
 			
 			//krok 1.2.
 			BitArray[] klucze = makeSubKey(kPlus);//generujemy nasz 16 kluczy używanych do operacji
@@ -461,7 +461,7 @@ namespace DES{
 			//krok 1.3
 			BitArray[] kluczePlus = new BitArray[klucze.Length];//permutacja kluczy, narzucenie właściwego porządku używania
 			for (int i = 0; i < klucze.Length; i++) {
-				kluczePlus[i] = permutuj(klucze[i], pc2);
+				kluczePlus[i] = performPermutation(klucze[i], pc2);
 			}
 
 			//krok 2.0
@@ -475,13 +475,13 @@ namespace DES{
 				
 				BitArray tmp0 = new BitArray(CopyBits(co, i * (64/8), (64/8)));//zapisujemy tymczosowo nasze 64 bity któe będziemy kodować
 
-				odwroc(ref tmp0);//musimy zachować przyjęty wewnętrzny porządek
+				RevertBits(ref tmp0);//musimy zachować przyjęty wewnętrzny porządek
 
-				BitArray tmp = permutuj(tmp0,ip);//wstępna permutacja
+				BitArray tmp = performPermutation(tmp0,ip);//wstępna permutacja
 
 				BitArray tmp2 = koduj(tmp, kluczePlus);//zakodowanie, permutacja, podmiana z sboksami
 
-				tmp2 = permutuj(tmp2, ipr); //ostatnia permutacja macierzą
+				tmp2 = performPermutation(tmp2, ipr); //ostatnia permutacja macierzą
 
 				byte[] zaszyfrowane = ToByteArray(tmp2);//przechowujemy dane w postaci byte[] zatem musimy przejść z postaci bitowej
 														//do postaci bajtowej, przywracamy przy okazji prawidłowe ułożenie bitów
@@ -497,11 +497,11 @@ namespace DES{
 		 * de facto to ta sama metoda co szyfrowanie, tylko zamienia się kolejność kluczy jaką się używa,
 		 * używa ich się w odwrotnej kolejnosci niż przy szyfrowaniu
 		 */
-		public byte[] deszyfruj(byte[] co, byte[] kluczB) {
+		public byte[] Decrypt(byte[] co, byte[] kluczB) {
 			//krok 1.1
 			BitArray klucz = new BitArray(kluczB);
 
-			BitArray kPlus = permutuj(odwroc(ref klucz), pc1);
+			BitArray kPlus = performPermutation(RevertBits(ref klucz), pc1);
 
 			//krok 1.2.
 			BitArray[] klucze = makeSubKey(kPlus);
@@ -509,7 +509,7 @@ namespace DES{
 			//krok 1.3
 			BitArray[] kluczePlus = new BitArray[klucze.Length];
 			for (int i = 0; i < klucze.Length; i++) {
-				kluczePlus[i] = permutuj(klucze[klucze.Length-i-1], pc2);//odwracamy kolejność kluczy, tylko ten krok jest różny, reszta linii taka sama jak w szyfrowaniu
+				kluczePlus[i] = performPermutation(klucze[klucze.Length-i-1], pc2);//odwracamy kolejność kluczy, tylko ten krok jest różny, reszta linii taka sama jak w szyfrowaniu
 			}
 
 			//krok 2.0
@@ -523,13 +523,13 @@ namespace DES{
 
 				BitArray tmp0 = new BitArray(CopyBits(co, i * (64 / 8), (64 / 8)));
 
-				odwroc(ref tmp0);
+				RevertBits(ref tmp0);
 
-				BitArray tmp = permutuj(tmp0, ip);
+				BitArray tmp = performPermutation(tmp0, ip);
 
 				BitArray tmp2 = koduj(tmp, kluczePlus);
 
-				tmp2 = permutuj(tmp2, ipr);
+				tmp2 = performPermutation(tmp2, ipr);
 
 				byte[] odkodowane = ToByteArray(tmp2);
 				dopisz(ref wynik, odkodowane, k);
