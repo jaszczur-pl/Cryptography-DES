@@ -30,7 +30,7 @@ namespace DES{
             byte[] klucz = des.GetStringHexKey(txtKlucz.Text);
             byte[] wynik = des.szyfruj(StrToByteArray(txtZrodlo.Text), klucz);
             txtWynik.Text = des.ToHexString(wynik);
-            MessageBox.Show("Encryption completed!");
+            MessageBox.Show("Szyfrowanie zakończone sukcesem!");
 
 
         }
@@ -43,7 +43,7 @@ namespace DES{
             byte[] klucz = des.GetStringHexKey(txtKlucz.Text);
             byte[] wynik = des.deszyfruj(zaszyfrowane, klucz);
             txtWynik.Text = enc.GetString(wynik);
-            MessageBox.Show("Decryption completed");
+            MessageBox.Show("Deszyfrowanie zakończone sukcesem!");
 
         }
 
@@ -77,7 +77,7 @@ namespace DES{
    
 		private void txtKlucz_KeyPress(object sender, KeyPressEventArgs e) {
 			if (e.KeyChar < '0' || e.KeyChar > '9') {
-				if (e.KeyChar <'a' || e.KeyChar > 'f') {
+				if (e.KeyChar <'A' || e.KeyChar > 'F') {
 					if (e.KeyChar != 8) //backspace dopuszczony
 						e.Handled = true;//powinno zatrzymać obsługe tego :/
 				}
@@ -89,22 +89,5 @@ namespace DES{
 			}
 		}
 
-        private void btnCreateKey_Click(object sender, EventArgs e)
-        {
-            Random random = new Random();
-            byte[] buffer = new byte[16 / 2];
-            random.NextBytes(buffer);
-            string result = String.Concat(buffer.Select(x => x.ToString("X2")).ToArray());
-            if (16 % 2 == 0)
-                txtKlucz.Text = result;
-            else
-                txtKlucz.Text = result + random.Next(16);
-        }
-
-        private void btnExit_Click(object sender, EventArgs e)
-        {
-            Application.Exit();
-
-        }
     }
 }
