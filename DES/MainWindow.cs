@@ -25,10 +25,10 @@ namespace DES{
 		private void btnSzyfruj_Click(object sender, EventArgs e) {
 			DesAlgorithm des = new DesAlgorithm();
 
-            byte[] key = des.GetStringHexKey(textKey.Text);
+            byte[] key = des.ConvertHexStringKeyToBytes(textKey.Text);
             byte[] result = des.Encrypt(StrToByteArray(textInput.Text), key);
 
-            textOutput.Text = des.ToHexString(result);
+            textOutput.Text = des.ConvertBytesToHexString(result);
 
             MessageBox.Show("Szyfrowanie zakończone sukcesem!");
 
@@ -40,8 +40,8 @@ namespace DES{
             DesAlgorithm des = new DesAlgorithm();
             System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
 
-            byte[] encyrptedText = des.GetStringHexText(textInput.Text);
-            byte[] key = des.GetStringHexKey(textKey.Text);
+            byte[] encyrptedText = des.ConvertStringTextToBytes(textInput.Text);
+            byte[] key = des.ConvertHexStringKeyToBytes(textKey.Text);
             byte[] result = des.Decrypt(encyrptedText, key);
 
             textOutput.Text = enc.GetString(result);
