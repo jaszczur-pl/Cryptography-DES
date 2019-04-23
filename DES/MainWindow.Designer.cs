@@ -97,7 +97,7 @@
             // 
             // btnWyjscie
             // 
-            this.btnWyjscie.Location = new System.Drawing.Point(53, 543);
+            this.btnWyjscie.Location = new System.Drawing.Point(154, 82);
             this.btnWyjscie.Name = "btnWyjscie";
             this.btnWyjscie.Size = new System.Drawing.Size(95, 24);
             this.btnWyjscie.TabIndex = 13;
@@ -118,7 +118,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(50, 319);
+            this.label3.Location = new System.Drawing.Point(586, 121);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(87, 13);
             this.label3.TabIndex = 6;
@@ -126,18 +126,18 @@
             // 
             // txtWynik
             // 
-            this.txtWynik.Location = new System.Drawing.Point(53, 335);
+            this.txtWynik.Location = new System.Drawing.Point(589, 137);
             this.txtWynik.Multiline = true;
             this.txtWynik.Name = "txtWynik";
             this.txtWynik.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.txtWynik.Size = new System.Drawing.Size(515, 181);
+            this.txtWynik.Size = new System.Drawing.Size(515, 167);
             this.txtWynik.TabIndex = 2;
             // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(616, 584);
+            this.ClientSize = new System.Drawing.Size(1128, 338);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.btnWyjscie);
