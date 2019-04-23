@@ -11,9 +11,9 @@ using System.Collections;
 
 namespace DES{
     public partial class MainWindow : Form{
+
         public MainWindow(){
             InitializeComponent();
-
         }
 
 		private void btnEncrypt_Click(object sender, EventArgs e) {
@@ -32,7 +32,7 @@ namespace DES{
         private void btnDecrypt_Click(object sender, EventArgs e)
         {
             DesAlgorithm des = new DesAlgorithm();
-            System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
+            UTF8Encoding enc = new UTF8Encoding();
 
             byte[] encyrptedText = des.ConvertStringTextToBytes(textInput.Text);
             byte[] key = des.ConvertHexStringKeyToBytes(textKey.Text);
@@ -55,7 +55,6 @@ namespace DES{
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 textInput.Text = File.ReadAllText(dialog.FileName);
-
             }
         }
 
@@ -70,7 +69,6 @@ namespace DES{
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 File.WriteAllText(dialog.FileName, textOutput.Text);
-
             }
 
         }
@@ -78,11 +76,11 @@ namespace DES{
 		private void textKey_KeyPress(object sender, KeyPressEventArgs e) {
 			if (e.KeyChar < '0' || e.KeyChar > '9') {
 				if (e.KeyChar <'A' || e.KeyChar > 'F') {
-					if (e.KeyChar != 8) //backspace dopuszczony
-						e.Handled = true;//powinno zatrzymać obsługe tego :/
+					if (e.KeyChar != 8)
+						e.Handled = true;
 				}
 			}
-			//sprawdzamy długość
+
 			if (sender.Equals(textKey)) {
 				if (textKey.Text.Length == 16 && e.KeyChar != 8)
 					e.Handled = true;

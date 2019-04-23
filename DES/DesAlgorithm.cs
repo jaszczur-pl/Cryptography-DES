@@ -9,84 +9,86 @@ using System.Collections;
 namespace DES{
     public partial class DesAlgorithm
     {
-        /* metoda odpowiedzialna za wykonanie i przygotowanie danych w odpowieniej kolejności do szyfrowania
-         * czyli w skrócie, odpowidnia kolejnosć kluczy zostaje ustawiona
-         */
         public byte[] Encrypt(byte[] text, byte[] byteKey) {
-            //krok 1.1
+
+            //key operations - creating 16 subkeys, each of which is 48-bits long
+            //1. 64-bit key is permuted according to the table PC-1 and becomes 56-bit permutation
+            //2. Key is splitted into left and right halves, where each half has 28 bits
+            //3. We're creating 16 blocks C and D. Each pair of blocks is formed from the previous pair. Bits in blocks are shifted left according to "leftShifts" table
+            //4. We're merging each pair. Concatenated pairs are permuted again using PC-2 table. Keys on output have 48 bits
             BitArray tmpBitKey = new BitArray(byteKey);
 
-            BitArray permutedKey = performPermutation(RevertBits(ref tmpBitKey), pc1Table);//permutujemy klucz
+            BitArray permutedKey = performPermutation(RevertBits(tmpBitKey), pc1Table);
+            BitArray[] subKeys = MakeSubKeys(permutedKey);
+            BitArray[] permutedSubKeys = new BitArray[subKeys.Length];
 
-            //krok 1.2.
-            BitArray[] subKeys = MakeSubKeys(permutedKey);//generujemy nasz 16 kluczy używanych do operacji
-
-            //krok 1.3
-            BitArray[] permutedSubKeys = new BitArray[subKeys.Length];//permutacja kluczy, narzucenie właściwego porządku używania
             for (int i = 0; i < subKeys.Length; i++) {
                 permutedSubKeys[i] = performPermutation(subKeys[i], pc2Table);
             }
 
-            //krok 2.0
-            //mamy już klucze, teraz można przystąpić do kodowania wiadomości
-            double parts = Math.Ceiling(text.Length / (64.0 / 8.0));//wyznaczenie ilości 64 bitowych paczek 
+            //operacje tekstowe - kodowanie 64-bitowych bloków danych
+            //1. Poczatkowa permutacja 64-bitowego bloku kodu
+            //2. Podzielenie bloku kodu z kroku 1 na lewa i prawa część
+            //3. Przejście przez 16 iteracji, używajac zaszyfrowanego, 48-bitowego klucza oraz połówek bloku danych (po 32 bity), wg wzoru L- lewa połówka, R- prawa, K - klucz
+            //   Ln = R(n-1)
+            //   Rn = L(n-1) + feistel(R(n-1),Kn)
+            //
+            //   Funkcja Feistela dla prawej połówki: 
+            //   3.1 Permutacja prawej połówki używajac tablicy eBit - prawa połówka ma teraz 48 bitów
+            //   3.2 Wykonujemy operację XOR na kluczu 48-bitowym i prawej połówce blocku danych
+            //   3.3 Dzielimy blok z punktu 3.2 na 8 6-bitowych podbloków, na każdym z podbloków wykonujemy obliczenia Sboxów.
+            //      3.3.1 Na wejściu mamy 6 bitów - pierwszy i ostatni bit w systemie binarnym wyznacza numer wiersza Sboxa, zaś 4 środkowe bity wyznaczaja numer kolumny Sboxa,
+            //            na tej podstawie pobieramy wartości z każdego Sboxa (czyli na wyjściu Sboxa mamy 4 bity)
+            //   3.4 Po obliczeniu Sboxow mamy 8x4 = 32 bity, po ich otrzymaniu wykonujemy permutację za pomoca tabeli pTable.
+            //4. Ostatnia wyznaczon parę połówek bloków zamieniamy miejscami i łaczymy (tj. zamiars LR będzie RL) co daje nam 64 bity
+            //5. Wykonujemy ostateczna permutacje na wyniku z 4 punktu przy użyci tabeli finalIPTable - to jest zaszyfrowany tekst naszego 64-bitowego bloku
 
-            byte[] result = new byte[Convert.ToInt32(parts) * (64 / 8)];//w tym będziemy trzymać postać wyjściową :)
+            double parts = Math.Ceiling(text.Length / (64.0 / 8.0));
+            byte[] result = new byte[Convert.ToInt32(parts) * (64 / 8)];
 
             int k = 0;
-            for (int i = 0; i < Convert.ToInt32(parts); i++) {//każdą część obliczamy
 
-                BitArray binaryText = new BitArray(CopyBits(text, i * (64 / 8), (64 / 8)));//zapisujemy tymczosowo nasze 64 bity któe będziemy kodować
+            for (int i = 0; i < Convert.ToInt32(parts); i++) {
 
-                RevertBits(ref binaryText);//musimy zachować przyjęty wewnętrzny porządek
+                BitArray binaryText = new BitArray(CopyBits(text, i * (64 / 8), (64 / 8)));
+                RevertBits(binaryText);
 
-                BitArray permutedText = performPermutation(binaryText, ipTable);//wstępna permutacja
+                BitArray permutedText = performPermutation(binaryText, ipTable);
+                BitArray codedText = CodeText(permutedText, permutedSubKeys);
+                codedText = performPermutation(codedText, finalIPTable);
 
-                BitArray codedText = CodeText(permutedText, permutedSubKeys);//zakodowanie, permutacja, podmiana z sboksami
+                byte[] encyrptedText = ConvertBitsToByteWithRevert(codedText);
 
-                codedText = performPermutation(codedText, finalIPTable); //ostatnia permutacja macierzą
-
-                byte[] encyrptedText = ConvertBitsToByteWithRevert(codedText);//przechowujemy dane w postaci byte[] zatem musimy przejść z postaci bitowej
-                                                        //do postaci bajtowej, przywracamy przy okazji prawidłowe ułożenie bitów
-
-                AddByteArray(ref result, encyrptedText, k);//dopisujemy naszą paczuszkę zaszyfrowaną do całości
-                k += encyrptedText.Length;//zwiększamy indeks startowy, gdzie mają być dopisywane zakodowane dane do "całości wyjściowej" 
+                AddByteArray(ref result, encyrptedText, k);
+                k += encyrptedText.Length;
             }
 
-            return result;//zwróć całość zaszyfrowaną.
+            return result;
         }
 
-        /* metoda odpowiedzialna za przygotowanie danych i wykonanie w odpowiedniej kolejności metod w celu deszyfracji
-        * de facto to ta sama metoda text szyfrowanie, tylko zamienia się kolejność kluczy jaką się używa,
-        * używa ich się w odwrotnej kolejnosci niż przy szyfrowaniu
-        */
         public byte[] Decrypt(byte[] text, byte[] key) {
-            //krok 1.1
+
+            //key operations
             BitArray tmpBitKey = new BitArray(key);
 
-            BitArray permutedKey = performPermutation(RevertBits(ref tmpBitKey), pc1Table);
-
-            //krok 1.2.
+            BitArray permutedKey = performPermutation(RevertBits(tmpBitKey), pc1Table);
             BitArray[] subKeys = MakeSubKeys(permutedKey);
-
-            //krok 1.3
             BitArray[] permutedSubKeys = new BitArray[subKeys.Length];
             for (int i = 0; i < subKeys.Length; i++) {
-                permutedSubKeys[i] = performPermutation(subKeys[subKeys.Length - i - 1], pc2Table);//odwracamy kolejność kluczy, tylko ten krok jest różny, reszta linii taka sama jak w szyfrowaniu
+                permutedSubKeys[i] = performPermutation(subKeys[subKeys.Length - i - 1], pc2Table);
             }
 
-            //krok 2.0
-            //mamy już klucze, teraz można przystąpić do kodowania wiadomości
+            //text operations
             double parts = Math.Ceiling(text.Length / (64.0 / 8.0));
 
-            byte[] result = new byte[Convert.ToInt32(parts) * (64 / 8)];//w tym będziemy trzymać postać wyjściową :)
+            byte[] result = new byte[Convert.ToInt32(parts) * (64 / 8)];
 
             int k = 0;
-            for (int i = 0; i < Convert.ToInt32(parts); i++) {//każdą część obliczamy
+            for (int i = 0; i < Convert.ToInt32(parts); i++) {
 
                 BitArray binaryText = new BitArray(CopyBits(text, i * (64 / 8), (64 / 8)));
 
-                RevertBits(ref binaryText);
+                RevertBits(binaryText);
 
                 BitArray permutedText = performPermutation(binaryText, ipTable);
 
@@ -102,13 +104,8 @@ namespace DES{
 
             return result;
         }
-        //---------------------------------------------------------------------------------------------------------------------------------------
-        /* przesuniecie "bitowe" w lewo
-		 * operacja bezpieczna tylko dla liczb dodatnich, poprawnosc w tym wypadku nie jest sprawdzana
-		 * dane bierzemy do tablicy opisującej ilosć przesunieć,
-		 * metoda prywatna wykorzystywana tylko wewnetrz klasy do tworzenia kluczy
-		 */
-        private BitArray MoveBitsLeft(BitArray array, int shift) {//niestety klasa wbudowana w C# nie zapewnia tego typu operacji
+
+        private BitArray MoveBitsLeft(BitArray array, int shift) {
 			BitArray result = new BitArray(array.Length, false);
 			for (int i = 0; i < array.Length; i++) {
 				if (i < array.Length - shift) {
@@ -121,47 +118,30 @@ namespace DES{
 			return result;
 		}
 		
-		/* złcza 2 tablice bitów w jedną, konkatenacja tab1+tab2
-		 * długość tablic dowolna, tablica wyjściowa to rozmiar 1 + rozmia 2
-		 * operacja dość powolna, sporo pamięci idzie, 
-		 * byś może jest wbudowana, ale ta działa w stopniu wystarczającym
-		 */
-		private BitArray MergeArrays(BitArray tab1, BitArray tab2) {
-			BitArray result = new BitArray(tab1.Length + tab2.Length);
-			for (int i = 0; i < tab1.Length; i++) {
-				result[i] = tab1.Get(i);
+		private BitArray MergeArrays(BitArray array1, BitArray array2) {
+			BitArray mergedArray = new BitArray(array1.Length + array2.Length);
+			for (int i = 0; i < array1.Length; i++) {
+				mergedArray[i] = array1.Get(i);
 			}
-			for (int i = 0; i < tab2.Length; i++) {
-				result[i+tab1.Length] = tab2.Get(i);
+			for (int i = 0; i < array2.Length; i++) {
+				mergedArray[i+array1.Length] = array2.Get(i);
 			}
-			return result;
+			return mergedArray;
 		}
-//---------------------------------------------------------------------------------------------------------------------------------------
-		/* dokonuje permutacji zawartości tablicy,
-		 * czyli po ludzku, dokonuje zamiany bitów wedle określonego wzorca(mapy),
-		 * w wyniku tej operacji powstajemy nową tablica bitów, która może mieć inny rozmiar od wejsciowego
-		 * do tego bity w tablicy wyjściowej są uzyskane z tablicy wejściowej, w porzadku narzuconym przez mape
-		 * zakładamy że właściwa map jest podłaczana do właściwej tablicy,
-		 * w przypadku niewłaściwej mapy, może zostać zgłoszony wyjątek przekroczenia zakresu
-		 */
+
 		private BitArray performPermutation(BitArray array, int[] table) {
-			BitArray result = new BitArray(table.Length, false);
+			BitArray permutedArray = new BitArray(table.Length, false);
 			
 			for (int i = 0; i < table.Length; i++) {
-				result[i] = array[ table[i]-1 ];
+				permutedArray[i] = array[ table[i]-1 ];
 			}
 
-			return result;
+			return permutedArray;
 		}
 
-//---------------------------------------------------------------------------------------------------------------------------------------
-		/* operacje z użyciem sboxów,
-		 * dokonujemy zamiany wartości z tablicy na te odpowiadajace im z sboxa(oczywiście odpowiedniego)
-		 * numer iteracji i służy do wyboru sboksa, wiersze i kolumny w tym wypadku są numerowane po bożemu czyli od zera
-		 */
 		private BitArray getSBoxValue(int row, int col, int i) {
 			int newValue = 0;
-			row *= 16;//w wierszu jest 16 liczb, my trzymamy wszystko w tablicy a nie macierzy, zatem trzeba dokonać odpowiedniego przesunięcia
+			row *= 16;
 			switch (i) {
 				case 0:
 					newValue = sBox1[row + col];
@@ -189,10 +169,9 @@ namespace DES{
 					break;
 			}
 			
-			byte[] bytes = BitConverter.GetBytes((char)newValue);//niestety dostajemy 2 bajty zamiast potrzebnego 1, trzeba go skrócić
+			byte[] bytes = BitConverter.GetBytes((char)newValue);
 			byte[] tmpB = new byte[1];
 			tmpB[0] = bytes[0];
-			//mamy 1 bajt włąściwy, ale to jest pełny bajt == 8 bitów, nam są potrzebne tylko 4 bity, reszta to i tak zera
 
 			BitArray tmp = new BitArray(tmpB);
 			BitArray result = new BitArray(4);
@@ -201,106 +180,91 @@ namespace DES{
 			result[2] = tmp[2];
 			result[3] = tmp[3];
 
-			return Revert4Bits(ref result);	//odwracamy kolejność zgodnie z przyjętym wewnętrznym porządkiem czytanai bitów od lewej do prawej
-										//sposób ten ułatwia nam zrozumienie i łatwiejsze operowanie na bitach 
-										//(szczególnie przydatne to było przy debugowaniu)
+			return Revert4Bits(ref result);
 		}
 
-		/* funkcja operująca na 32 bitach (połówka pakietu danych)
-		 * wykonuje 4 niezbędne czynności do zakodowania wiadomości:
-		 * 1. rozszerzenie (nazwa moze mylić, że permutacja, ale ta metoda się do tego nadaje)
-		 * 2. miksowanie klucza
-		 * 3. podstawienie wartości z Sboksa
-		 * 4. permutacja
-		 */
-		private BitArray performFeistelFunction(BitArray leftKey, BitArray key) {
-			BitArray tmp = performPermutation(leftKey, eBitTable);//robi też rozszerzenie.(krok 1)
+		private BitArray performFeistelFunction(BitArray rightText, BitArray key) {
+
+			BitArray permutedRightText = performPermutation(rightText, eBitTable);
 			
-			tmp.Xor(key);//(krok 2)
-			//podział na grupy do sboksów
-			int k = 0;
+			permutedRightText.Xor(key);
+
+			int bitCounter = 0;
 			BitArray result = new BitArray(32, false);
-			for (int i = 0; i < tmp.Length; i+=6) {// osiem paczek po 6 bitów
-				BitArray rowB = new BitArray(2);// bit 0 i 5 stanowią o wierszu z którego należy pobrać wartość
-				rowB[0] = tmp[i + 5];
-				rowB[1] = tmp[i];//stosujemy tutaj tradycyjne ułozenie bitów i liczenie, od prawej do lewej
+			for (int i = 0; i < permutedRightText.Length; i+=6) {
+				BitArray row = new BitArray(2);
+				row[0] = permutedRightText[i + 5];
+				row[1] = permutedRightText[i];
 				
-				BitArray colB = new BitArray(4);//4 bity środkowe wyznaczają numer kolumny z której odczytujemy wartość podstawienia
-				colB[0] = tmp[i + 4];
-				colB[1] = tmp[i + 3];
-				colB[2] = tmp[i + 2];
-				colB[3] = tmp[i + 1];
-				BitArray SBoxValue = getSBoxValue(Convert.ToInt32(ConvertBitsToByteWithoutReverse(rowB)[0]), Convert.ToInt32(ConvertBitsToByteWithoutReverse(colB)[0]), i / 6);
+				BitArray col = new BitArray(4);
+				col[0] = permutedRightText[i + 4];
+				col[1] = permutedRightText[i + 3];
+				col[2] = permutedRightText[i + 2];
+				col[3] = permutedRightText[i + 1];
+				BitArray SBoxValue = getSBoxValue(Convert.ToInt32(ConvertBitsToByteWithoutReverse(row)[0]), Convert.ToInt32(ConvertBitsToByteWithoutReverse(col)[0]), i / 6);
 				
-				CopyBits(ref result, SBoxValue, k);//dopisujemy do naszej tablicy bitów odczytane z podstawienia, musimy przecież na koniec mieć 32 bity :)
-				k += SBoxValue.Length;
+				CopyBits(ref result, SBoxValue, bitCounter);
+				bitCounter += SBoxValue.Length;
 			}
 
-			return performPermutation(result, pTable);//permutacja całej połówki
+			return performPermutation(result, pTable);
 		}
-//---------------------------------------------------------------------------------------------------------------------------------------
-		/* kopiuje dane(bajty) z tablicy wejściowej od pozycji start, poprzez określoną ilość
-		 * zwraca tak utworzoną tablice bajtów
-		 * operacja bezpieczna, w razie "skończenia" się tablicy źródłowej wypełniamy reszte bajtów zerami
-		 */
+
 		private byte[] CopyBits(byte[] array, int start, int counter) {
+
 			byte[] result = new byte[counter];
+
 			for (int i = 0; i < counter; i++) {
 				if (start + i >= array.Length) {
-					result[i] = new byte();	//uzupełniamy zerami te pozycje, których brakuje 
-											//(wykorzystywane, np by dopełniać brakujace 64 bitowe paczki danych do szyfrowania)
+					result[i] = new byte();	
 				} else {
 					result[i] = array[start + i];
 				}
 			}
+
 			return result;
 		}
 
-		/* dopisuje do głównej tablicy bajtów od pozycji startowej całą tablice drugą.
-		 * tablice muszą się "mieścić" w sobie inaczej błąd, nie ma tego sprawdzania,
-		 * tzn jest częsciowe, bajty które się nie mieszczą zostaną zignorowane
-		 * zostanie zwrócone tylko tyle ile udało się zmieścić do tablicy docelowej
-		 */
 		private byte[] AddByteArray( ref byte[] target, byte[] source, int start) {
+
 			for (int i = 0; i < source.Length; i++) {
 				if (target.Length <= start + i)
 					break;
 				target[start + i] = source[i];
 			}
+
 			return target;
 		}
 
-		/*kopiuje bity z jednej tablicy do drugiej, przy czym kopiowana jest cała tablica źródłowa do docelowej,
-		 * miejsce początkowe w tablicy docelowej wyznaczane jest poprzez "start"
-		 * w przypadku przekroczenia zakresu, bity z tablicy źródłowej są pomijane
-		 * metodo praktycznie jak ta powyżej ino dla bitów, w sumie też mogłą nazwyać się dołącz, ale powstała w innym czasie)
-		 */
 		private BitArray CopyBits(ref BitArray target, BitArray source, int start) {
+
 			for (int i = 0; i < source.Length; i++) {
 				if (target.Length <= start + i)
 					break;
 				target[start + i] = source[i];
 			}
+
 			return target;
 		}
 
-		/* przepisanie z tablicy bitów do tablicy bajtów (z nią można wiecej),
-		 * "naprawiana" przy tym jest kolejność bitów, która w klasie zosałą zmieniona,
-		 * czytaj w klasie uznajemy, że numerowanie bitów jest od lewej do prawej, czyli odwrotnie niż w rzeczywistości
-		 */
 		public byte[] ConvertBitsToByteWithRevert(BitArray bits) {
 			int numBytes = bits.Count / 8;
-			if (bits.Count % 8 != 0)
-				numBytes++;
+
+			if (bits.Count % 8 != 0) {
+                numBytes++;
+            }
 
 			byte[] bytes = new byte[numBytes];
 			int byteIndex = 0, bitIndex = 0;
 
 			for (int i = 0; i < bits.Count; i++) {
-				if (bits[i])
-					bytes[byteIndex] |= (byte)(1 << (7 - bitIndex));
+
+				if (bits[i]) {
+                    bytes[byteIndex] |= (byte)(1 << (7 - bitIndex));
+                }
 
 				bitIndex++;
+
 				if (bitIndex == 8) {
 					bitIndex = 0;
 					byteIndex++;
@@ -310,35 +274,23 @@ namespace DES{
 			return bytes;
 		}
 
-		/* przepisane z tablicy bitów do tablicy bajtów, kolejnosć bitów zachowana,
-		 * czyli numeracja od prawej do lewej,
-		 * jeśli chcemy używać potem tego gdzieś wewnątrz klasy, należy najpierw odwrócić odwrócić bity
-		 */
 		public byte[] ConvertBitsToByteWithoutReverse(BitArray bits) {
 			byte[] bytes = new byte[bits.Length];
 			bits.CopyTo(bytes, 0);
 			return bytes;
 		}
-        //---------------------------------------------------------------------------------------------------------------------------------------		
 
-        //*tworzy z naszej tablicy bajtów ciąg heksadecymalnych liczb, odpowiadajacy wartością bajtów
-        // * przydatne do wypisywanie zakodowanego tekstu, bądź aktualnego stanu jakieś zmiennej, bądź do kontroli poszczególnych kroków
-        // */
         public string ConvertBytesToHexString(byte[] bytes) {
             char[] chars = new char[bytes.Length * 2];
             for (int i = 0; i < bytes.Length; i++) {
                 int b = bytes[i];
-                chars[i * 2] = hexDigits[b >> 4];
-                chars[i * 2 + 1] = hexDigits[b & 0xF];
+                chars[i * 2] = hexChars[b >> 4];
+                chars[i * 2 + 1] = hexChars[b & 0xF];
             }
             return new string(chars);
         }
 
-        /* odwracamy kolejność bitów w bajcie, rozmiar paczki to 8 bitów (tzn może być wiecej elementów, ale 8 bitowe paczki są odwracane)
-		 * wykorzystywane do uproszczenia rozumowania, zamieniono kolejność oznaczenia bajtów - od lewej do prawej,
-		 * zamiast prawidłowego od prawej do lewej)
-		 */
-        private BitArray RevertBits(ref BitArray tab) {
+        private BitArray RevertBits(BitArray tab) {
 			for (int i = 0; i < tab.Length; i = i + 8) {
 				bool tmp = false;
 				for (int j = 0; j < 4; j++) {
@@ -351,8 +303,6 @@ namespace DES{
 			return tab;
 		}
 
-		/* to text wyżej, tylko że wielkość "bajtu" wynosi tutaj 4 bity
-		 */
 		private BitArray Revert4Bits(ref BitArray tab) {
 			for (int i = 0; i < tab.Length; i = i + 4) {
 				bool tmp = false;
@@ -366,9 +316,6 @@ namespace DES{
 			return tab;
 		}
 
-		/* pobiera ciąg znaków (string) w którym jest zapisany w postaci heksadecymalnej klucz
-		 * długość tego ciągu to 16 znaków (2 znaki na liczbe), czyli 8 "liczb", zatem prawidłowe 64 bity klucza
-		 */
 		public byte[] ConvertHexStringKeyToBytes(string klucz) {
 			byte[] result = new byte[8];
 			for (int i = 0; i < 16; i += 2) {
@@ -380,80 +327,67 @@ namespace DES{
 			return result;
 		}
 
-		/* pobiera najczęściej zakodowany tekst zapisany w postaci heksadecymalnej,
-		 * taki tekst możemy bezpiecznie wprowadzać w okienku,
-		 * sprowadzamy go do tablicy bajtów, tak jkabyśmy odczytali binarny plik
-		 * nie sprawdzamy poprawności danych, czy są wszystkie wprowadzone czy nie
-		 * zakładamy że użytkownik na tym etapie to nie idiota i umie wprowadzić wszystkie znaki (czyli 2 znaki na liczbe w hex, np 00, 01, 10, AB)
-		 */
 		public byte[] ConvertStringTextToBytes(string text) {
-			if( text.Length % 2 == 1 )//sprawdzzmy czy parzyscie znaków, jak nie to szkoda naszej roboty
-				throw new ArgumentException("Ilość znaków musi być parzysta");
+
+            if ( text.Length % 2 == 1) {
+                throw new ArgumentException("Ilość znaków musi być parzysta");
+            }
+
 			byte[] result = new byte[text.Length/2];
+
 			for (int i = 0; i < text.Length; i += 2) {
 				string tmp = text.Substring(i, 2);
 				int value = int.Parse(tmp, System.Globalization.NumberStyles.HexNumber, null);
 				byte[] bytes = BitConverter.GetBytes((char)value);
 				result[i / 2] = bytes[0];
 			}
+
 			return result;
 		}
-//---------------------------------------------------------------------------------------------------------------------------------------
-		/* metoda tworząca na postawie klucza podanego przez użytkownia,
-		 * 16 kluczy wykorzystywanych do szyfrowania i deszyfrowania
-		 */
-		private BitArray[] MakeSubKeys(BitArray wholeKey) {
-			BitArray[] result = new BitArray[16];
 
+		private BitArray[] MakeSubKeys(BitArray wholeKey) {
+
+            BitArray[] mergedKeys = new BitArray[16];
 			int keyLength = wholeKey.Length;
 
-			BitArray tempKey = new BitArray(2, false);//bo maxymalny left shift to 2 pola, więc tyle musimy zrobić machniom z początku
-
-			BitArray leftKey = new BitArray(keyLength / 2);//podział klucza na dwie równe połówki po 32 bity
+			BitArray tempKey = new BitArray(2, false);
+			BitArray leftKey = new BitArray(keyLength / 2);
 			BitArray rightKey = new BitArray(keyLength / 2);
 
-			//dzielimy klucz na 2 równe częsci
 			for (int i = 0; i < keyLength / 2; i++) {
 				leftKey[i] = wholeKey.Get(i);
 			}
+
 			for (int i = (keyLength / 2); i < keyLength; i++) {
 				rightKey[i - (keyLength / 2)] = wholeKey.Get(i);
 			}
 			
-			//dokonujemy "left shifts" dla 0 kroku, którego nie można uruchomić w pętli
-			
-			//zapamiętujemy bity które mają być przesuniete na koniec 
-			tempKey[0] = leftKey[0];//w pierwszym przesunieciu jest tylko o 1 w lewo, będzie to na stałe wpisane, trudno
-
-			leftKey = MoveBitsLeft(leftKey, leftShifts[0]);//przesuniecie
-			
-			leftKey[leftKey.Length-1] = tempKey[0];//wpisanie bitów z początka
+			tempKey[0] = leftKey[0];
+			leftKey = MoveBitsLeft(leftKey, leftShifts[0]);
+			leftKey[leftKey.Length-1] = tempKey[0];
 
 			tempKey[0] = rightKey[0];
-			rightKey = MoveBitsLeft(rightKey, leftShifts[0]);//przesuniecie
+			rightKey = MoveBitsLeft(rightKey, leftShifts[0]);
+			rightKey[rightKey.Length-1] = tempKey[0];
 
-			rightKey[rightKey.Length-1] = tempKey[0];//wpisanie bitów z początka
-
-
-			result[0] = MergeArrays(leftKey,rightKey);//mamy nasz 1 klucz z 16
-			
+			mergedKeys[0] = MergeArrays(leftKey,rightKey);
 			
 			for (int i = 1; i < 16; i++) {
 				
-				//dzielimy klucz na 2 równe częsci
 				for (int k = 0; k < keyLength / 2; k++) {
-					leftKey[k] = result[i-1].Get(k);
+					leftKey[k] = mergedKeys[i-1].Get(k);
 				}
+
 				for (int k = (keyLength / 2); k < keyLength; k++) {
-					rightKey[k - (keyLength / 2)] = result[i-1].Get(k);
+					rightKey[k - (keyLength / 2)] = mergedKeys[i-1].Get(k);
 				}
-				//zapamiętanie bajtów do przesuniecia na koniec
+
 				for (int k = 0; k < leftShifts[i]; k++) {
 					tempKey[k] = leftKey.Get(k);
 				}
-				leftKey = MoveBitsLeft(leftKey, leftShifts[i]);//przesuniecie
-				
-				//wpisanie na koniec zapamietanych bitów
+
+				leftKey = MoveBitsLeft(leftKey, leftShifts[i]);
+
 				for (int k = 0; k < leftShifts[i]; k++) {
 					leftKey[leftKey.Length-leftShifts[i]+k] = tempKey.Get(k);
 				}
@@ -461,47 +395,45 @@ namespace DES{
 				for (int k = 0; k < leftShifts[i]; k++) {
 					tempKey[k] = rightKey.Get(k);
 				}
-				rightKey = MoveBitsLeft(rightKey, leftShifts[i]);//przesuniecie
+
+				rightKey = MoveBitsLeft(rightKey, leftShifts[i]);
 
 				for (int k = 0; k < leftShifts[i]; k++) {
 					rightKey[rightKey.Length - leftShifts[i] + k] = tempKey.Get(k);
 				}
 
-				result[i] = MergeArrays(leftKey, rightKey);
+				mergedKeys[i] = MergeArrays(leftKey, rightKey);
 
 			}
-			return result;
+
+			return mergedKeys;
 		}
 
-		/* szyfrujemy/kodujemy naszą paczke 64 bitów danych według odpowiedniego układu kluczy
-		 * by odszyfrować dane wystarczy wykonać te same czynności text do szyfrowania, tylko należy te 16 kluczy text wygenerowaliśmy
-		 * użyć w przeciwnej kolejności (od 16 .. 1) [szyfrowanie zaś 1..16]
-		 */
 		private BitArray CodeText(BitArray text, BitArray[] keys) {
+
 			int textLength = text.Length;
 
-			//dzielimy na 2 części
 			BitArray leftKey = new BitArray(textLength / 2);
 			BitArray rightKey = new BitArray(textLength / 2);
 
-			//dzielimy klucz na 2 równe częsci
 			for (int i = 0; i < textLength / 2; i++) {
 				leftKey[i] = text.Get(i);
 			}
+
 			for (int i = (textLength / 2); i < textLength; i++) {
 				rightKey[i - (textLength / 2)] = text.Get(i);
 			}
 
 			BitArray tempKey = new BitArray(textLength / 2);
-			//tu musi być 16 inaczej dupa blada :D
+
 			for (int i = 0; i < 16; i++) {
 				tempKey = leftKey;
 				leftKey = rightKey;
-				rightKey = tempKey.Xor(performFeistelFunction(leftKey, keys[i]));//xor wywołanie metody "4 kroków"
-											//(głównie to miksacja z kluczem, podstawienie sboksa i permutacja w skrócie)
+				rightKey = tempKey.Xor(performFeistelFunction(leftKey, keys[i]));
+											
 			}
 
-			return MergeArrays(rightKey,leftKey);//zamieniamy kolejność połówek
+			return MergeArrays(rightKey,leftKey);
 		}
 
 
