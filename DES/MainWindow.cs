@@ -16,26 +16,20 @@ namespace DES{
 
         }
 
-		private static byte[] StrToByteArray(string str) {
-			System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
-			return encoding.GetBytes(str);
-		}
-
-
-		private void btnSzyfruj_Click(object sender, EventArgs e) {
+		private void btnEncrypt_Click(object sender, EventArgs e) {
 			DesAlgorithm des = new DesAlgorithm();
+            UTF8Encoding encoding = new UTF8Encoding();
 
+            byte[] convertedText = encoding.GetBytes(textInput.Text);
             byte[] key = des.ConvertHexStringKeyToBytes(textKey.Text);
-            byte[] result = des.Encrypt(StrToByteArray(textInput.Text), key);
+            byte[] result = des.Encrypt(convertedText, key);
 
             textOutput.Text = des.ConvertBytesToHexString(result);
 
             MessageBox.Show("Szyfrowanie zakończone sukcesem!");
-
-
         }
 
-        private void btnDeszyfruj_Click(object sender, EventArgs e)
+        private void btnDecrypt_Click(object sender, EventArgs e)
         {
             DesAlgorithm des = new DesAlgorithm();
             System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
@@ -47,11 +41,10 @@ namespace DES{
             textOutput.Text = enc.GetString(result);
 
             MessageBox.Show("Deszyfrowanie zakończone sukcesem!");
-
         }
 
 
-        private void btnZrodlowy_Click(object sender, EventArgs e)
+        private void btnGetFile_Click(object sender, EventArgs e)
         {
             OpenFileDialog dialog = new OpenFileDialog();
 
@@ -66,7 +59,7 @@ namespace DES{
             }
         }
 
-        private void btnWyjsciowy_Click(object sender, EventArgs e)
+        private void btnSave_Click(object sender, EventArgs e)
         {
 			SaveFileDialog dialog = new SaveFileDialog();
 
@@ -82,7 +75,7 @@ namespace DES{
 
         }
    
-		private void txtKlucz_KeyPress(object sender, KeyPressEventArgs e) {
+		private void textKey_KeyPress(object sender, KeyPressEventArgs e) {
 			if (e.KeyChar < '0' || e.KeyChar > '9') {
 				if (e.KeyChar <'A' || e.KeyChar > 'F') {
 					if (e.KeyChar != 8) //backspace dopuszczony

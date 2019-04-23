@@ -64,7 +64,7 @@
             this.textKey.Name = "textKey";
             this.textKey.Size = new System.Drawing.Size(124, 20);
             this.textKey.TabIndex = 12;
-            this.textKey.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtKlucz_KeyPress);
+            this.textKey.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textKey_KeyPress);
             // 
             // btnEncrypt
             // 
@@ -74,7 +74,7 @@
             this.btnEncrypt.TabIndex = 0;
             this.btnEncrypt.Text = "Szyfruj";
             this.btnEncrypt.UseVisualStyleBackColor = true;
-            this.btnEncrypt.Click += new System.EventHandler(this.btnSzyfruj_Click);
+            this.btnEncrypt.Click += new System.EventHandler(this.btnEncrypt_Click);
             // 
             // btnDecrypt
             // 
@@ -84,7 +84,7 @@
             this.btnDecrypt.TabIndex = 1;
             this.btnDecrypt.Text = "Deszyfruj";
             this.btnDecrypt.UseVisualStyleBackColor = true;
-            this.btnDecrypt.Click += new System.EventHandler(this.btnDeszyfruj_Click);
+            this.btnDecrypt.Click += new System.EventHandler(this.btnDecrypt_Click);
             // 
             // btnSave
             // 
@@ -94,7 +94,7 @@
             this.btnSave.TabIndex = 13;
             this.btnSave.Text = "Zapisz";
             this.btnSave.UseVisualStyleBackColor = true;
-            this.btnSave.Click += new System.EventHandler(this.btnWyjsciowy_Click);
+            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
             // btnGetFile
             // 
@@ -104,7 +104,7 @@
             this.btnGetFile.TabIndex = 12;
             this.btnGetFile.Text = "Wybierz plik";
             this.btnGetFile.UseVisualStyleBackColor = true;
-            this.btnGetFile.Click += new System.EventHandler(this.btnZrodlowy_Click);
+            this.btnGetFile.Click += new System.EventHandler(this.btnGetFile_Click);
             // 
             // label1
             // 
