@@ -28,46 +28,83 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.btnSzyfruj = new System.Windows.Forms.Button();
-            this.btnDeszyfruj = new System.Windows.Forms.Button();
-            this.txtZrodlo = new System.Windows.Forms.TextBox();
+            this.btnEncrypt = new System.Windows.Forms.Button();
+            this.btnDecrypt = new System.Windows.Forms.Button();
+            this.textInput = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.txtKlucz = new System.Windows.Forms.TextBox();
-            this.btnWyjscie = new System.Windows.Forms.Button();
-            this.btnZrodlo = new System.Windows.Forms.Button();
+            this.textKey = new System.Windows.Forms.TextBox();
+            this.btnSave = new System.Windows.Forms.Button();
+            this.btnGetFile = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
-            this.txtWynik = new System.Windows.Forms.TextBox();
+            this.textOutput = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
-            // btnSzyfruj
+            // textInput
             // 
-            this.btnSzyfruj.Location = new System.Drawing.Point(356, 83);
-            this.btnSzyfruj.Name = "btnSzyfruj";
-            this.btnSzyfruj.Size = new System.Drawing.Size(103, 23);
-            this.btnSzyfruj.TabIndex = 0;
-            this.btnSzyfruj.Text = "Szyfruj";
-            this.btnSzyfruj.UseVisualStyleBackColor = true;
-            this.btnSzyfruj.Click += new System.EventHandler(this.btnSzyfruj_Click);
+            this.textInput.Location = new System.Drawing.Point(53, 137);
+            this.textInput.Multiline = true;
+            this.textInput.Name = "textInput";
+            this.textInput.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textInput.Size = new System.Drawing.Size(515, 167);
+            this.textInput.TabIndex = 2;
             // 
-            // btnDeszyfruj
+            // textOutput
             // 
-            this.btnDeszyfruj.Location = new System.Drawing.Point(465, 83);
-            this.btnDeszyfruj.Name = "btnDeszyfruj";
-            this.btnDeszyfruj.Size = new System.Drawing.Size(103, 23);
-            this.btnDeszyfruj.TabIndex = 1;
-            this.btnDeszyfruj.Text = "Deszyfruj";
-            this.btnDeszyfruj.UseVisualStyleBackColor = true;
-            this.btnDeszyfruj.Click += new System.EventHandler(this.btnDeszyfruj_Click);
+            this.textOutput.Location = new System.Drawing.Point(589, 137);
+            this.textOutput.Multiline = true;
+            this.textOutput.Name = "textOutput";
+            this.textOutput.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textOutput.Size = new System.Drawing.Size(515, 167);
+            this.textOutput.TabIndex = 2;
             // 
-            // txtZrodlo
+            // textKey
             // 
-            this.txtZrodlo.Location = new System.Drawing.Point(53, 137);
-            this.txtZrodlo.Multiline = true;
-            this.txtZrodlo.Name = "txtZrodlo";
-            this.txtZrodlo.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.txtZrodlo.Size = new System.Drawing.Size(515, 167);
-            this.txtZrodlo.TabIndex = 2;
+            this.textKey.Location = new System.Drawing.Point(53, 31);
+            this.textKey.Name = "textKey";
+            this.textKey.Size = new System.Drawing.Size(124, 20);
+            this.textKey.TabIndex = 12;
+            this.textKey.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtKlucz_KeyPress);
+            // 
+            // btnEncrypt
+            // 
+            this.btnEncrypt.Location = new System.Drawing.Point(356, 83);
+            this.btnEncrypt.Name = "btnEncrypt";
+            this.btnEncrypt.Size = new System.Drawing.Size(103, 23);
+            this.btnEncrypt.TabIndex = 0;
+            this.btnEncrypt.Text = "Szyfruj";
+            this.btnEncrypt.UseVisualStyleBackColor = true;
+            this.btnEncrypt.Click += new System.EventHandler(this.btnSzyfruj_Click);
+            // 
+            // btnDecrypt
+            // 
+            this.btnDecrypt.Location = new System.Drawing.Point(465, 83);
+            this.btnDecrypt.Name = "btnDecrypt";
+            this.btnDecrypt.Size = new System.Drawing.Size(103, 23);
+            this.btnDecrypt.TabIndex = 1;
+            this.btnDecrypt.Text = "Deszyfruj";
+            this.btnDecrypt.UseVisualStyleBackColor = true;
+            this.btnDecrypt.Click += new System.EventHandler(this.btnDeszyfruj_Click);
+            // 
+            // btnSave
+            // 
+            this.btnSave.Location = new System.Drawing.Point(154, 82);
+            this.btnSave.Name = "btnSave";
+            this.btnSave.Size = new System.Drawing.Size(95, 24);
+            this.btnSave.TabIndex = 13;
+            this.btnSave.Text = "Zapisz";
+            this.btnSave.UseVisualStyleBackColor = true;
+            this.btnSave.Click += new System.EventHandler(this.btnWyjsciowy_Click);
+            // 
+            // btnGetFile
+            // 
+            this.btnGetFile.Location = new System.Drawing.Point(53, 82);
+            this.btnGetFile.Name = "btnGetFile";
+            this.btnGetFile.Size = new System.Drawing.Size(95, 24);
+            this.btnGetFile.TabIndex = 12;
+            this.btnGetFile.Text = "Wybierz plik";
+            this.btnGetFile.UseVisualStyleBackColor = true;
+            this.btnGetFile.Click += new System.EventHandler(this.btnZrodlowy_Click);
             // 
             // label1
             // 
@@ -87,34 +124,6 @@
             this.label2.TabIndex = 6;
             this.label2.Text = "Tekst wejściowy";
             // 
-            // txtKlucz
-            // 
-            this.txtKlucz.Location = new System.Drawing.Point(53, 31);
-            this.txtKlucz.Name = "txtKlucz";
-            this.txtKlucz.Size = new System.Drawing.Size(124, 20);
-            this.txtKlucz.TabIndex = 12;
-            this.txtKlucz.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtKlucz_KeyPress);
-            // 
-            // btnWyjscie
-            // 
-            this.btnWyjscie.Location = new System.Drawing.Point(154, 82);
-            this.btnWyjscie.Name = "btnWyjscie";
-            this.btnWyjscie.Size = new System.Drawing.Size(95, 24);
-            this.btnWyjscie.TabIndex = 13;
-            this.btnWyjscie.Text = "Zapisz";
-            this.btnWyjscie.UseVisualStyleBackColor = true;
-            this.btnWyjscie.Click += new System.EventHandler(this.btnWyjsciowy_Click);
-            // 
-            // btnZrodlo
-            // 
-            this.btnZrodlo.Location = new System.Drawing.Point(53, 82);
-            this.btnZrodlo.Name = "btnZrodlo";
-            this.btnZrodlo.Size = new System.Drawing.Size(95, 24);
-            this.btnZrodlo.TabIndex = 12;
-            this.btnZrodlo.Text = "Wybierz plik";
-            this.btnZrodlo.UseVisualStyleBackColor = true;
-            this.btnZrodlo.Click += new System.EventHandler(this.btnZrodlowy_Click);
-            // 
             // label3
             // 
             this.label3.AutoSize = true;
@@ -124,15 +133,6 @@
             this.label3.TabIndex = 6;
             this.label3.Text = "Tekst Wyjściowy";
             // 
-            // txtWynik
-            // 
-            this.txtWynik.Location = new System.Drawing.Point(589, 137);
-            this.txtWynik.Multiline = true;
-            this.txtWynik.Name = "txtWynik";
-            this.txtWynik.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.txtWynik.Size = new System.Drawing.Size(515, 167);
-            this.txtWynik.TabIndex = 2;
-            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -140,14 +140,14 @@
             this.ClientSize = new System.Drawing.Size(1128, 338);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.btnWyjscie);
-            this.Controls.Add(this.txtWynik);
-            this.Controls.Add(this.txtZrodlo);
-            this.Controls.Add(this.btnZrodlo);
-            this.Controls.Add(this.txtKlucz);
+            this.Controls.Add(this.btnSave);
+            this.Controls.Add(this.textOutput);
+            this.Controls.Add(this.textInput);
+            this.Controls.Add(this.btnGetFile);
+            this.Controls.Add(this.textKey);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.btnDeszyfruj);
-            this.Controls.Add(this.btnSzyfruj);
+            this.Controls.Add(this.btnDecrypt);
+            this.Controls.Add(this.btnEncrypt);
             this.Name = "MainWindow";
             this.Text = "DesAlgorithm";
             this.ResumeLayout(false);
@@ -157,16 +157,16 @@
 
         #endregion
 
-        private System.Windows.Forms.Button btnSzyfruj;
-        private System.Windows.Forms.Button btnDeszyfruj;
-        private System.Windows.Forms.TextBox txtZrodlo;
+        private System.Windows.Forms.Button btnEncrypt;
+        private System.Windows.Forms.Button btnDecrypt;
+        private System.Windows.Forms.TextBox textInput;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Button btnWyjscie;
-        private System.Windows.Forms.Button btnZrodlo;
-		private System.Windows.Forms.TextBox txtKlucz;
+        private System.Windows.Forms.Button btnSave;
+        private System.Windows.Forms.Button btnGetFile;
+		private System.Windows.Forms.TextBox textKey;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox txtWynik;
+        private System.Windows.Forms.TextBox textOutput;
     }
 }
 

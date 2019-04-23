@@ -25,10 +25,10 @@ namespace DES{
 		private void btnSzyfruj_Click(object sender, EventArgs e) {
 			DesAlgorithm des = new DesAlgorithm();
 
-            byte[] key = des.GetStringHexKey(txtKlucz.Text);
-            byte[] result = des.Encrypt(StrToByteArray(txtZrodlo.Text), key);
+            byte[] key = des.GetStringHexKey(textKey.Text);
+            byte[] result = des.Encrypt(StrToByteArray(textInput.Text), key);
 
-            txtWynik.Text = des.ToHexString(result);
+            textOutput.Text = des.ToHexString(result);
 
             MessageBox.Show("Szyfrowanie zakończone sukcesem!");
 
@@ -40,11 +40,11 @@ namespace DES{
             DesAlgorithm des = new DesAlgorithm();
             System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
 
-            byte[] encyrptedText = des.GetStringHexText(txtZrodlo.Text);
-            byte[] key = des.GetStringHexKey(txtKlucz.Text);
+            byte[] encyrptedText = des.GetStringHexText(textInput.Text);
+            byte[] key = des.GetStringHexKey(textKey.Text);
             byte[] result = des.Decrypt(encyrptedText, key);
 
-            txtWynik.Text = enc.GetString(result);
+            textOutput.Text = enc.GetString(result);
 
             MessageBox.Show("Deszyfrowanie zakończone sukcesem!");
 
@@ -55,28 +55,28 @@ namespace DES{
         {
             OpenFileDialog dialog = new OpenFileDialog();
 
-            dialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            dialog.Filter = "All files (*.*)|*.*";
             dialog.FilterIndex = 1;
             dialog.RestoreDirectory = true;
 
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                txtZrodlo.Text = File.ReadAllText(dialog.FileName);
+                textInput.Text = File.ReadAllText(dialog.FileName);
 
             }
         }
 
         private void btnWyjsciowy_Click(object sender, EventArgs e)
         {
-			SaveFileDialog dlg = new SaveFileDialog();
+			SaveFileDialog dialog = new SaveFileDialog();
 
-            dlg.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-            dlg.FilterIndex = 1;
-            dlg.RestoreDirectory = true;
+            dialog.Filter = "All files (*.*)|*.*";
+            dialog.FilterIndex = 1;
+            dialog.RestoreDirectory = true;
 
-            if (dlg.ShowDialog() == DialogResult.OK)
+            if (dialog.ShowDialog() == DialogResult.OK)
             {
-                File.WriteAllText(dlg.FileName, txtWynik.Text);
+                File.WriteAllText(dialog.FileName, textOutput.Text);
 
             }
 
@@ -90,8 +90,8 @@ namespace DES{
 				}
 			}
 			//sprawdzamy długość
-			if (sender.Equals(txtKlucz)) {
-				if (txtKlucz.Text.Length == 16 && e.KeyChar != 8)
+			if (sender.Equals(textKey)) {
+				if (textKey.Text.Length == 16 && e.KeyChar != 8)
 					e.Handled = true;
 			}
 		}
