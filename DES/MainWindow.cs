@@ -17,30 +17,40 @@ namespace DES{
         }
 
 		private void btnEncrypt_Click(object sender, EventArgs e) {
-			DesAlgorithm des = new DesAlgorithm();
-            UTF8Encoding encoding = new UTF8Encoding();
 
-            byte[] convertedText = encoding.GetBytes(textInput.Text);
-            byte[] key = des.ConvertHexStringKeyToBytes(textKey.Text);
-            byte[] result = des.Encrypt(convertedText, key);
+            if (textKey.TextLength != 16) {
+                MessageBox.Show("Niepoprawna długość klucza!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            } else {
+                DesAlgorithm des = new DesAlgorithm();
+                UTF8Encoding encoding = new UTF8Encoding();
 
-            textOutput.Text = des.ConvertBytesToHexString(result);
+                byte[] convertedText = encoding.GetBytes(textInput.Text);
+                byte[] key = des.ConvertHexStringKeyToBytes(textKey.Text);
+                byte[] result = des.Encrypt(convertedText, key);
 
-            MessageBox.Show("Szyfrowanie zakończone sukcesem!");
+                textOutput.Text = des.ConvertBytesToHexString(result);
+
+                MessageBox.Show("Szyfrowanie zakończone sukcesem!");
+            }
         }
 
         private void btnDecrypt_Click(object sender, EventArgs e)
         {
-            DesAlgorithm des = new DesAlgorithm();
-            UTF8Encoding enc = new UTF8Encoding();
 
-            byte[] encyrptedText = des.ConvertStringTextToBytes(textInput.Text);
-            byte[] key = des.ConvertHexStringKeyToBytes(textKey.Text);
-            byte[] result = des.Decrypt(encyrptedText, key);
+            if (textKey.TextLength != 16) {
+                MessageBox.Show("Niepoprawna długość klucza!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            } else {
+                DesAlgorithm des = new DesAlgorithm();
+                UTF8Encoding enc = new UTF8Encoding();
 
-            textOutput.Text = enc.GetString(result);
+                byte[] encyrptedText = des.ConvertStringTextToBytes(textInput.Text);
+                byte[] key = des.ConvertHexStringKeyToBytes(textKey.Text);
+                byte[] result = des.Decrypt(encyrptedText, key);
 
-            MessageBox.Show("Deszyfrowanie zakończone sukcesem!");
+                textOutput.Text = enc.GetString(result);
+
+                MessageBox.Show("Deszyfrowanie zakończone sukcesem!");
+            }
         }
 
 

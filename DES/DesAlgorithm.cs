@@ -11,19 +11,19 @@ namespace DES{
     {
         public byte[] Encrypt(byte[] text, byte[] byteKey) {
 
-            //key operations - creating 16 subkeys, each of which is 48-bits long
-            //1. 64-bit key is permuted according to the table PC-1 and becomes 56-bit permutation
-            //2. Key is splitted into left and right halves, where each half has 28 bits
-            //3. We're creating 16 blocks C and D. Each pair of blocks is formed from the previous pair. Bits in blocks are shifted left according to "leftShifts" table
-            //4. We're merging each pair. Concatenated pairs are permuted again using PC-2 table. Keys on output have 48 bits
+            //operacje na kluczu - utworzenie 16 podkluczy, każdy o długości 48 bitów
+            //1. 64-bitowy klucz jest permutowany zgodnie z tablica pc1Table i staje się kluczem 56-bitowym
+            //2. Klucz jets dzielony na lewa i prawa połówkę, gdzie każda połówka ma 28 bitów
+            //3. Przechodzimy przez 16 iteracji, każda para kluczy jest tworzona na podstawie poprzedniej poprzez przesunięcia bitów w lewo wg. tablicy przesunięć "leftShift"
+            //4. Łaczymy każda parę kluczy i wykonujemy permutację zgodnie z tablica pc2Table. Każdy klucz ma teraz 48 bitów.
             BitArray tmpBitKey = new BitArray(byteKey);
 
-            BitArray permutedKey = performPermutation(RevertBits(tmpBitKey), pc1Table);
+            BitArray permutedKey = PerformPermutation(RevertBits(tmpBitKey), pc1Table);
             BitArray[] subKeys = MakeSubKeys(permutedKey);
             BitArray[] permutedSubKeys = new BitArray[subKeys.Length];
 
             for (int i = 0; i < subKeys.Length; i++) {
-                permutedSubKeys[i] = performPermutation(subKeys[i], pc2Table);
+                permutedSubKeys[i] = PerformPermutation(subKeys[i], pc2Table);
             }
 
             //operacje tekstowe - kodowanie 64-bitowych bloków danych
@@ -53,13 +53,13 @@ namespace DES{
                 BitArray binaryText = new BitArray(CopyBits(text, i * (64 / 8), (64 / 8)));
                 RevertBits(binaryText);
 
-                BitArray permutedText = performPermutation(binaryText, ipTable);
+                BitArray permutedText = PerformPermutation(binaryText, ipTable);
                 BitArray codedText = CodeText(permutedText, permutedSubKeys);
-                codedText = performPermutation(codedText, finalIPTable);
+                codedText = PerformPermutation(codedText, finalIPTable);
 
                 byte[] encyrptedText = ConvertBitsToByteWithRevert(codedText);
 
-                AddByteArray(ref result, encyrptedText, k);
+                AddByteArray(result, encyrptedText, k);
                 k += encyrptedText.Length;
             }
 
@@ -71,11 +71,11 @@ namespace DES{
             //key operations
             BitArray tmpBitKey = new BitArray(key);
 
-            BitArray permutedKey = performPermutation(RevertBits(tmpBitKey), pc1Table);
+            BitArray permutedKey = PerformPermutation(RevertBits(tmpBitKey), pc1Table);
             BitArray[] subKeys = MakeSubKeys(permutedKey);
             BitArray[] permutedSubKeys = new BitArray[subKeys.Length];
             for (int i = 0; i < subKeys.Length; i++) {
-                permutedSubKeys[i] = performPermutation(subKeys[subKeys.Length - i - 1], pc2Table);
+                permutedSubKeys[i] = PerformPermutation(subKeys[subKeys.Length - i - 1], pc2Table);
             }
 
             //text operations
@@ -90,14 +90,15 @@ namespace DES{
 
                 RevertBits(binaryText);
 
-                BitArray permutedText = performPermutation(binaryText, ipTable);
+                BitArray permutedText = PerformPermutation(binaryText, ipTable);
 
                 BitArray encodedText = CodeText(permutedText, permutedSubKeys);
 
-                encodedText = performPermutation(encodedText, finalIPTable);
+                encodedText = PerformPermutation(encodedText, finalIPTable);
 
                 byte[] decryptedText = ConvertBitsToByteWithRevert(encodedText);
-                AddByteArray(ref result, decryptedText, k);
+
+                AddByteArray(result, decryptedText, k);
                 k += decryptedText.Length;
 
             }
@@ -129,7 +130,7 @@ namespace DES{
 			return mergedArray;
 		}
 
-		private BitArray performPermutation(BitArray array, int[] table) {
+		private BitArray PerformPermutation(BitArray array, int[] table) {
 			BitArray permutedArray = new BitArray(table.Length, false);
 			
 			for (int i = 0; i < table.Length; i++) {
@@ -139,7 +140,7 @@ namespace DES{
 			return permutedArray;
 		}
 
-		private BitArray getSBoxValue(int row, int col, int i) {
+		private BitArray GetSBoxValue(int row, int col, int i) {
 			int newValue = 0;
 			row *= 16;
 			switch (i) {
@@ -180,12 +181,12 @@ namespace DES{
 			result[2] = tmp[2];
 			result[3] = tmp[3];
 
-			return Revert4Bits(ref result);
+			return Revert4Bits(result);
 		}
 
-		private BitArray performFeistelFunction(BitArray rightText, BitArray key) {
+		private BitArray PerformFeistelFunction(BitArray rightText, BitArray key) {
 
-			BitArray permutedRightText = performPermutation(rightText, eBitTable);
+			BitArray permutedRightText = PerformPermutation(rightText, eBitTable);
 			
 			permutedRightText.Xor(key);
 
@@ -201,13 +202,13 @@ namespace DES{
 				col[1] = permutedRightText[i + 3];
 				col[2] = permutedRightText[i + 2];
 				col[3] = permutedRightText[i + 1];
-				BitArray SBoxValue = getSBoxValue(Convert.ToInt32(ConvertBitsToByteWithoutReverse(row)[0]), Convert.ToInt32(ConvertBitsToByteWithoutReverse(col)[0]), i / 6);
+				BitArray SBoxValue = GetSBoxValue(Convert.ToInt32(ConvertBitsToByteWithoutReverse(row)[0]), Convert.ToInt32(ConvertBitsToByteWithoutReverse(col)[0]), i / 6);
 				
-				CopyBits(ref result, SBoxValue, bitCounter);
+				CopyBits(result, SBoxValue, bitCounter);
 				bitCounter += SBoxValue.Length;
 			}
 
-			return performPermutation(result, pTable);
+			return PerformPermutation(result, pTable);
 		}
 
 		private byte[] CopyBits(byte[] array, int start, int counter) {
@@ -225,7 +226,7 @@ namespace DES{
 			return result;
 		}
 
-		private byte[] AddByteArray( ref byte[] target, byte[] source, int start) {
+		private byte[] AddByteArray(byte[] target, byte[] source, int start) {
 
 			for (int i = 0; i < source.Length; i++) {
 				if (target.Length <= start + i)
@@ -236,7 +237,7 @@ namespace DES{
 			return target;
 		}
 
-		private BitArray CopyBits(ref BitArray target, BitArray source, int start) {
+		private BitArray CopyBits(BitArray target, BitArray source, int start) {
 
 			for (int i = 0; i < source.Length; i++) {
 				if (target.Length <= start + i)
@@ -303,7 +304,7 @@ namespace DES{
 			return tab;
 		}
 
-		private BitArray Revert4Bits(ref BitArray tab) {
+		private BitArray Revert4Bits(BitArray tab) {
 			for (int i = 0; i < tab.Length; i = i + 4) {
 				bool tmp = false;
 				for (int j = 0; j < 2; j++) {
@@ -429,16 +430,11 @@ namespace DES{
 			for (int i = 0; i < 16; i++) {
 				tempKey = leftKey;
 				leftKey = rightKey;
-				rightKey = tempKey.Xor(performFeistelFunction(leftKey, keys[i]));
+				rightKey = tempKey.Xor(PerformFeistelFunction(leftKey, keys[i]));
 											
 			}
 
 			return MergeArrays(rightKey,leftKey);
 		}
-
-
-
-
-
     }
 }
