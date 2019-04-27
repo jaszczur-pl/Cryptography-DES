@@ -38,37 +38,13 @@
             this.btnGetFile = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.textOutput = new System.Windows.Forms.TextBox();
+            this.btnSaveImage = new System.Windows.Forms.Button();
+            this.btnLoadImage = new System.Windows.Forms.Button();
             this.SuspendLayout();
-            // 
-            // textInput
-            // 
-            this.textInput.Location = new System.Drawing.Point(53, 137);
-            this.textInput.Multiline = true;
-            this.textInput.Name = "textInput";
-            this.textInput.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textInput.Size = new System.Drawing.Size(515, 167);
-            this.textInput.TabIndex = 2;
-            // 
-            // textOutput
-            // 
-            this.textOutput.Location = new System.Drawing.Point(589, 137);
-            this.textOutput.Multiline = true;
-            this.textOutput.Name = "textOutput";
-            this.textOutput.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textOutput.Size = new System.Drawing.Size(515, 167);
-            this.textOutput.TabIndex = 2;
-            // 
-            // textKey
-            // 
-            this.textKey.Location = new System.Drawing.Point(53, 31);
-            this.textKey.Name = "textKey";
-            this.textKey.Size = new System.Drawing.Size(124, 20);
-            this.textKey.TabIndex = 12;
-            this.textKey.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textKey_KeyPress);
             // 
             // btnEncrypt
             // 
-            this.btnEncrypt.Location = new System.Drawing.Point(356, 83);
+            this.btnEncrypt.Location = new System.Drawing.Point(589, 32);
             this.btnEncrypt.Name = "btnEncrypt";
             this.btnEncrypt.Size = new System.Drawing.Size(103, 23);
             this.btnEncrypt.TabIndex = 0;
@@ -78,7 +54,7 @@
             // 
             // btnDecrypt
             // 
-            this.btnDecrypt.Location = new System.Drawing.Point(465, 83);
+            this.btnDecrypt.Location = new System.Drawing.Point(589, 61);
             this.btnDecrypt.Name = "btnDecrypt";
             this.btnDecrypt.Size = new System.Drawing.Size(103, 23);
             this.btnDecrypt.TabIndex = 1;
@@ -86,25 +62,15 @@
             this.btnDecrypt.UseVisualStyleBackColor = true;
             this.btnDecrypt.Click += new System.EventHandler(this.btnDecrypt_Click);
             // 
-            // btnSave
+            // textInput
             // 
-            this.btnSave.Location = new System.Drawing.Point(154, 82);
-            this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(95, 24);
-            this.btnSave.TabIndex = 13;
-            this.btnSave.Text = "Zapisz";
-            this.btnSave.UseVisualStyleBackColor = true;
-            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
-            // 
-            // btnGetFile
-            // 
-            this.btnGetFile.Location = new System.Drawing.Point(53, 82);
-            this.btnGetFile.Name = "btnGetFile";
-            this.btnGetFile.Size = new System.Drawing.Size(95, 24);
-            this.btnGetFile.TabIndex = 12;
-            this.btnGetFile.Text = "Wybierz plik";
-            this.btnGetFile.UseVisualStyleBackColor = true;
-            this.btnGetFile.Click += new System.EventHandler(this.btnGetFile_Click);
+            this.textInput.Location = new System.Drawing.Point(53, 137);
+            this.textInput.MaxLength = 1000000;
+            this.textInput.Multiline = true;
+            this.textInput.Name = "textInput";
+            this.textInput.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textInput.Size = new System.Drawing.Size(515, 167);
+            this.textInput.TabIndex = 2;
             // 
             // label1
             // 
@@ -124,6 +90,34 @@
             this.label2.TabIndex = 6;
             this.label2.Text = "Tekst wejściowy";
             // 
+            // textKey
+            // 
+            this.textKey.Location = new System.Drawing.Point(53, 31);
+            this.textKey.Name = "textKey";
+            this.textKey.Size = new System.Drawing.Size(124, 20);
+            this.textKey.TabIndex = 12;
+            this.textKey.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textKey_KeyPress);
+            // 
+            // btnSave
+            // 
+            this.btnSave.Location = new System.Drawing.Point(218, 61);
+            this.btnSave.Name = "btnSave";
+            this.btnSave.Size = new System.Drawing.Size(120, 24);
+            this.btnSave.TabIndex = 13;
+            this.btnSave.Text = "Zapisz plik tekstowy";
+            this.btnSave.UseVisualStyleBackColor = true;
+            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
+            // 
+            // btnGetFile
+            // 
+            this.btnGetFile.Location = new System.Drawing.Point(218, 31);
+            this.btnGetFile.Name = "btnGetFile";
+            this.btnGetFile.Size = new System.Drawing.Size(120, 24);
+            this.btnGetFile.TabIndex = 12;
+            this.btnGetFile.Text = "Wybierz plik tekstowy";
+            this.btnGetFile.UseVisualStyleBackColor = true;
+            this.btnGetFile.Click += new System.EventHandler(this.btnGetFile_Click);
+            // 
             // label3
             // 
             this.label3.AutoSize = true;
@@ -133,11 +127,42 @@
             this.label3.TabIndex = 6;
             this.label3.Text = "Tekst Wyjściowy";
             // 
+            // textOutput
+            // 
+            this.textOutput.Location = new System.Drawing.Point(589, 137);
+            this.textOutput.Multiline = true;
+            this.textOutput.Name = "textOutput";
+            this.textOutput.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textOutput.Size = new System.Drawing.Size(515, 167);
+            this.textOutput.TabIndex = 2;
+            // 
+            // btnSaveImage
+            // 
+            this.btnSaveImage.Location = new System.Drawing.Point(360, 61);
+            this.btnSaveImage.Name = "btnSaveImage";
+            this.btnSaveImage.Size = new System.Drawing.Size(120, 24);
+            this.btnSaveImage.TabIndex = 15;
+            this.btnSaveImage.Text = "Zapisz obrazek";
+            this.btnSaveImage.UseVisualStyleBackColor = true;
+            this.btnSaveImage.Click += new System.EventHandler(this.btnSaveImage_Click);
+            // 
+            // btnLoadImage
+            // 
+            this.btnLoadImage.Location = new System.Drawing.Point(360, 31);
+            this.btnLoadImage.Name = "btnLoadImage";
+            this.btnLoadImage.Size = new System.Drawing.Size(120, 24);
+            this.btnLoadImage.TabIndex = 14;
+            this.btnLoadImage.Text = "Wybierz obrazek";
+            this.btnLoadImage.UseVisualStyleBackColor = true;
+            this.btnLoadImage.Click += new System.EventHandler(this.btnLoadImage_Click);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1128, 338);
+            this.Controls.Add(this.btnSaveImage);
+            this.Controls.Add(this.btnLoadImage);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.btnSave);
@@ -167,6 +192,8 @@
 		private System.Windows.Forms.TextBox textKey;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox textOutput;
+        private System.Windows.Forms.Button btnSaveImage;
+        private System.Windows.Forms.Button btnLoadImage;
     }
 }
 

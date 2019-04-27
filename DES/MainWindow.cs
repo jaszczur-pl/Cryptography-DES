@@ -16,11 +16,12 @@ namespace DES{
             InitializeComponent();
         }
 
-		private void btnEncrypt_Click(object sender, EventArgs e) {
+        private void btnEncrypt_Click(object sender, EventArgs e) {
 
             if (textKey.TextLength != 16) {
                 MessageBox.Show("Niepoprawna długość klucza!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            } else {
+            }
+            else {
                 DesAlgorithm des = new DesAlgorithm();
                 UTF8Encoding encoding = new UTF8Encoding();
 
@@ -34,12 +35,12 @@ namespace DES{
             }
         }
 
-        private void btnDecrypt_Click(object sender, EventArgs e)
-        {
+        private void btnDecrypt_Click(object sender, EventArgs e) {
 
             if (textKey.TextLength != 16) {
                 MessageBox.Show("Niepoprawna długość klucza!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            } else {
+            }
+            else {
                 DesAlgorithm des = new DesAlgorithm();
                 UTF8Encoding enc = new UTF8Encoding();
 
@@ -53,37 +54,44 @@ namespace DES{
             }
         }
 
-
-        private void btnGetFile_Click(object sender, EventArgs e)
-        {
+        //get text file 
+        private void btnGetFile_Click(object sender, EventArgs e) {
             OpenFileDialog dialog = new OpenFileDialog();
 
             dialog.Filter = "All files (*.*)|*.*";
             dialog.FilterIndex = 1;
             dialog.RestoreDirectory = true;
 
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                textInput.Text = File.ReadAllText(dialog.FileName);
+            if (dialog.ShowDialog() == DialogResult.OK) {
+
+                FileStream fs = new FileStream(dialog.FileName, FileMode.Open, FileAccess.Read);
+
+                try {
+                    StreamReader sr = new StreamReader(fs);
+                    textInput.Text = sr.ReadToEnd();
+                    sr.Close();
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(ex.ToString());
+                }
             }
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
-        {
-			SaveFileDialog dialog = new SaveFileDialog();
+        //save text
+        private void btnSave_Click(object sender, EventArgs e) {
+            SaveFileDialog dialog = new SaveFileDialog();
 
             dialog.Filter = "All files (*.*)|*.*";
             dialog.FilterIndex = 1;
             dialog.RestoreDirectory = true;
 
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
+            if (dialog.ShowDialog() == DialogResult.OK) {
                 File.WriteAllText(dialog.FileName, textOutput.Text);
             }
 
         }
-   
-		private void textKey_KeyPress(object sender, KeyPressEventArgs e) {
+
+        private void textKey_KeyPress(object sender, KeyPressEventArgs e) {
 			if (e.KeyChar < '0' || e.KeyChar > '9') {
 				if (e.KeyChar <'A' || e.KeyChar > 'F') {
 					if (e.KeyChar != 8)
@@ -97,5 +105,36 @@ namespace DES{
 			}
 		}
 
+        //get image
+        private void btnLoadImage_Click(object sender, EventArgs e) {
+            OpenFileDialog dialog = new OpenFileDialog();
+
+            dialog.Filter = "All files (*.*)|*.*";
+            dialog.FilterIndex = 1;
+            dialog.RestoreDirectory = true;
+
+            if (dialog.ShowDialog() == DialogResult.OK) {
+
+                byte[] imageBytes = System.IO.File.ReadAllBytes(dialog.FileName);
+
+                // Convert byte[] to Base64 String
+                string base64String = Convert.ToBase64String(imageBytes);
+                textInput.Text = base64String;
+            }
+        }
+
+        //save image 
+        private void btnSaveImage_Click(object sender, EventArgs e) {
+            SaveFileDialog dialog = new SaveFileDialog();
+
+            dialog.Filter = "All files (*.*)|*.*";
+            dialog.FilterIndex = 1;
+            dialog.RestoreDirectory = true;
+
+            if (dialog.ShowDialog() == DialogResult.OK) {
+                var img = Image.FromStream(new MemoryStream(Convert.FromBase64String(textOutput.Text)));
+                img.Save(dialog.FileName);
+            }
+        }
     }
 }
